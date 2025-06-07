@@ -1,0 +1,271 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -60,
+        -120
+      ],
+      "id": "f23f2ca3-16d5-4db8-93c3-46cc106c108c",
+      "name": "When chat message received",
+      "webhookId": "22cf8eef-6f69-434d-98b4-ea89cb5dfe44"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Act as a seasoned 60 year old musician anfd guitar lover who happens to be a  e-commerce optimization specialist with deep knowledge of WooCommerce, SEO, and conversion rate optimization. Your task is to comprehensively analyze the provided product data on product with id {{ $json.chatInput }} from the  MCP server, the rendered product page HTML, and all associated images to suggest specific improvements.
+
+**Analysis Requirements:**
+
+1. **Product Data Assessment:**
+   - Evaluate the completeness and quality of: title, short description, long description, attributes, tags, categories, and metadata
+   - Check for missing or underutilized fields that could enhance SEO or conversions
+
+2. **Content Evaluation:**
+   - Analyze the current product text for:
+     * SEO effectiveness (keyword usage, semantic richness)
+     * Persuasive elements (benefits vs features, emotional triggers)
+     * Readability (structure, scannability, paragraph length)
+     * Conversion-focused language (CTAs, urgency, social proof)
+   - Identify opportunities to better address customer pain points and objections
+
+3. **Visual Assessment:**
+   - Evaluate image quality, quantity, and variety
+   - Check for missing visual elements (lifestyle images, size charts, etc.)
+   - Suggest improvements for alt texts and image SEO
+   - Recommend optimal image formats and compression
+
+4. **Page Structure Analysis:**
+   - Review the rendered HTML for:
+     * Mobile responsiveness
+     * Loading speed indicators
+     * Structured data implementation
+     * Content hierarchy and visual flow
+
+**Output Format:**
+
+Provide your analysis and recommendations in this structured format:
+
+1. **Current Strengths:** [List 3-5 things currently working well]
+
+2. **Priority Improvements:** [List the 3-5 most impactful changes needed]
+
+3. **Detailed Recommendations:**
+   - SEO: [Specific technical and content SEO improvements]
+   - Content: [Detailed text improvements with rationale]
+   - Visuals: [Image-specific recommendations]
+   - Technical: [Page structure/speed optimizations]
+
+4. **Improved Product Text:** 
+   - Provide a revised version of the product description that incorporates:
+     * Better SEO optimization
+     * More persuasive writing
+     * Improved readability
+     * Stronger conversion elements
+   - Maintain the brand voice while enhancing the text
+Our brand voice is friendly ,guitar-nerdy,  fun and targeting fellow musicians in the rock and jazz, who share the love for the history of american electric guitars. 
+   - Include suggested meta title and description
+
+5. **Implementation Notes:** [Any specific technical considerations for implementing these changes in WooCommerce]
+ create concrete tasks with checkboxes.
+Focus particularly on creating content that both ranks well in search engines and converts visitors into customers. All recommendations should be practical to implement and tailored to an e-commerce context.
+
+
+",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        200,
+        -120
+      ],
+      "id": "3fa6ff8b-55ca-4f94-b752-f3ce970e284d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://127.0.0.1:8051/sse"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        400,
+        100
+      ],
+      "id": "10791c59-2e29-4704-8acc-c0115d9f4157",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "inputMarkdown": "={{ $json.output }}"
+      },
+      "type": "n8n-nodes-notion-markdown.notionMarkdown",
+      "typeVersion": 1,
+      "position": [
+        600,
+        -120
+      ],
+      "id": "1fde651c-9298-434b-a4b0-bad188a77a2a",
+      "name": "Notion Markdown",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://api.notion.com/v1/blocks/208df0c701478088bcb6c2d3191124f1/children",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": " 2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={
+    "children": {{ $json.output.toJsonString() }}
+}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        -120
+      ],
+      "id": "0eb8b51c-162b-4ed9-bb48-bd28ef35a2e7",
+      "name": "HTTP Request",
+      "credentials": {
+        "notionApi": {
+          "id": "Bo6RPAfNrCxSmhSR",
+          "name": "Notion account"
+        },
+        "httpBearerAuth": {
+          "id": "S6L5aiqOa1BAazmR",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        280,
+        100
+      ],
+      "id": "447d350d-5e9e-4d32-98b7-a80977a4bb15",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-04-17-thinking",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        120,
+        60
+      ],
+      "id": "6725da5d-867d-4333-96c4-095f3c99bc98",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LcLGiU5dJUWqOADb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Notion Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion Markdown": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fd46cf72-2146-44ac-9e21-64ce9aadf5ac",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8deb53dac79d9e8d8affd7467641917e797216b368be2ef070eff0b36677adae"
+  },
+  "id": "7SRW6qhoRqlwLP8t",
+  "tags": []
+}
